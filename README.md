@@ -1,6 +1,6 @@
 A simple visualize of processing CSV data file by using library **wxPython**. 
 
-This is a very simple and basic app so file input must be basic tabular data. But to use this script viewer should have some knowledge of data preprocessing.
+This is a very simple and basic app so file input must be basic tabular data, but to use this script viewer should have some knowledge of data preprocessing.
 
 Some library and module of Python were using is:
 * wxPython
