@@ -6,7 +6,7 @@ import webbrowser
 
 def data_report(file_path, directory):
     file_name = file_path.split('\\')[-1].split('.')[-2]
-    data = load_data(file_path)
+    data = pd.read_csv(file_path)
     profile = ProfileReport(data, title="Report", explorative=True)
     profile.to_file(f'{directory}\{file_name}.html')
 

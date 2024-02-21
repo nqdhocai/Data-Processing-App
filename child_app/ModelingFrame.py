@@ -1,14 +1,23 @@
 import wx
 import pandas as pd
-
+from sklearn.model_selection import train_test_split
+from lazypredict.Supervised import LazyClassifier, LazyRegressor
 class ModellingFrame(wx.Frame):
-    def __init__(self, parent, title):
+    def __init__(self, parent, title, data):
         super(ModellingFrame, self).__init__(parent, title=title, size=(470, 400))
 
-        self.data = pd.read_csv()
-        self.create_widget()
+        self.data = data
+        self.display()
 
         self.FrameConfig()
+
+    def display(self):
+        self.create_widget()
+
+        columns = self.data.columns.tolist()
+        for i in range(len(columns)):
+            self.listctrl.InsertItem(i, columns[i])
+
     def create_widget(self):
         self.panel = wx.Panel(self)
 
@@ -58,8 +67,64 @@ class ModellingFrame(wx.Frame):
 
         self.frame2.SetSizer(frame2_box)
     def lazy_predict(self, event):
-        test_size = self.text_ctrl.GetValue()
-        pass
+        try:
+            test_size = float(self.text_ctrl.GetValue())
+
+            choises1 = self.data.columns.tolist()
+            dialog1 = ChoiceDialog(self, choises1, "Target")
+
+            if dialog1.ShowModal() == wx.ID_OK:
+                selected_choice1 = dialog1.get_selection()
+                print("Bạn đã chọn:", selected_choice1)
+            dialog1.Destroy()
+
+            choises2 = ['Regression', 'Clasification']
+            dialog2 = ChoiceDialog(self, choises2, "Type Of Target")
+
+            if dialog2.ShowModal() == wx.ID_OK:
+                selected_choice2 = dialog2.get_selection()
+                print("Bạn đã chọn:", selected_choice2)
+            dialog2.Destroy()
+
+            x = self.data.drop(columns = [selected_choice1])
+            y = self.data[selected_choice1]
+
+            x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size, random_state=1508)
+
+            if selected_choice2 == 'Regression':
+                rgs = LazyRegressor()
+                models, predictions = rgs.fit(x_train, x_test, y_train, y_test)
+                models_name = models['Model'].tolist()
+                r2_scores = models['R-Squared'].tolist()
+
+                for i in range(len(models_name)):
+                    if i <= self.listctrl.GetItemCount():
+                        self.listctrl.SetItem(i, 1, models_name[i])
+                        self.listctrl.SetItem(i, 2, str(r2_scores[i]))
+                    else:
+                        self.listctrl.InsertItem(i, '')
+                        self.listctrl.SetItem(i, 1, models_name[i])
+                        self.listctrl.SetItem(i, 2, str(r2_scores[i]))
+            else:
+                clf = LazyClassifier()
+                models, predictions = clf.fit(x_train, x_test, y_train, y_test)
+                models_name = models['Model'].tolist()
+                accuracy_scores = models['Accuracy'].tolist()
+
+                for i in range(len(models_name)):
+                    if i <= self.listctrl.GetItemCount():
+                        self.listctrl.SetItem(i, 1, models_name[i])
+                        self.listctrl.SetItem(i, 2, str(accuracy_scores[i]))
+                    else:
+                        self.listctrl.InsertItem(i, '')
+                        self.listctrl.SetItem(i, 1, models_name[i])
+                        self.listctrl.SetItem(i, 2, str(accuracy_scores[i]))
+        except Exception as e:
+            if str(e) == 'could not convert string to float: \'\'':
+                wx.MessageBox('Type of Test Size must be Float', 'Error !!!')
+            else:
+                wx.MessageBox(str(e), 'Error !!!')
+
     def FrameConfig(self):
         # Tắt điều chỉnh cửa sổ
         self.SetMinSize(self.GetSize())
@@ -69,8 +134,27 @@ class ModellingFrame(wx.Frame):
         for i in range(3):
             self.listctrl.SetColumnWidth(i, self.listctrl.GetSize().GetWidth() // 3)
 
+class ChoiceDialog(wx.Dialog):
+    def __init__(self, parent, choices, title):
+        super().__init__(parent, title=title, size=(200, 150))
 
-myapp = wx.App()
-frame = ModellingFrame(None, '')
-frame.Show()
-myapp.MainLoop()
+        self.choices = choices
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        self.choice = wx.Choice(self, choices=choices)
+        sizer.Add(self.choice, 0, wx.ALIGN_CENTER | wx.ALL, 10)
+
+        btn_ok = wx.Button(self, wx.ID_OK, "OK")
+        btn_cancel = wx.Button(self, wx.ID_CANCEL, "Cancel")
+
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer.Add(btn_ok, 0, wx.ALL, 5)
+        btn_sizer.Add(btn_cancel, 0, wx.ALL, 5)
+
+        sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER)
+        self.SetSizer(sizer)
+
+    def get_selection(self):
+        return self.choices[self.choice.GetSelection()]
+
+

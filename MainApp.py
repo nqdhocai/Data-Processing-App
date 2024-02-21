@@ -2,6 +2,9 @@ import os
 import shutil
 import wx
 import wx.lib.newevent
+from child_app.data_process_app_func import data_report
+from child_app import ChildApp
+from threading import Thread
 
 # Sự kiện tạo ra để xử lý việc chọn tệp
 FileSelectedEvent, EVT_FILE_SELECTED = wx.lib.newevent.NewEvent()
@@ -19,8 +22,8 @@ class MainFrame(wx.Frame):
     def __init__(self, parent, title):
         super(MainFrame, self).__init__(parent, title=title, size=(600, 400))
 
-        self.directory = './saved_file'
-
+        self.data_directory = './saved_file'
+        self.html_directory = './html_file'
         self.create_menu()
         self.create_widgets()
 
@@ -47,6 +50,7 @@ class MainFrame(wx.Frame):
 
         input_button.Bind(wx.EVT_BUTTON, self.input_file)
         delete_button.Bind(wx.EVT_BUTTON, self.delete_file)
+        select_button.Bind(wx.EVT_BUTTON, self.select_button)
 
         # Bố cục nút
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -63,9 +67,9 @@ class MainFrame(wx.Frame):
 
     def update_listbox(self):
         self.file_listbox.Clear()
-        if not os.path.exists(self.directory):
-            os.makedirs(self.directory)
-        files = os.listdir(self.directory)
+        if not os.path.exists(self.data_directory):
+            os.makedirs(self.data_directory)
+        files = os.listdir(self.data_directory)
         for file in files:
             self.file_listbox.Append(file)
 
@@ -85,7 +89,7 @@ class MainFrame(wx.Frame):
             file_paths = fileDialog.GetPaths()
 
         # Chọn thư mục để lưu bản sao
-        destination_folder = self.directory
+        destination_folder = self.data_directory
         if destination_folder:
             for file_path in file_paths:
                 # Lấy tên tệp từ đường dẫn đầy đủ
@@ -101,9 +105,27 @@ class MainFrame(wx.Frame):
         selection = self.file_listbox.GetSelection()
         if selection != wx.NOT_FOUND:
             file_name = self.file_listbox.GetString(selection)
-            file_path = os.path.join(self.directory, file_name)
+            file_path = os.path.join(self.data_directory, file_name)
             os.remove(file_path)
             self.file_listbox.Delete(selection)
+
+    def select_button(self, event):
+        self.Close()
+
+        selection = self.file_listbox.GetSelection()
+        if selection != wx.NOT_FOUND:
+            file_name = self.file_listbox.GetString(selection)
+            file_path = os.path.join(self.data_directory, file_name)
+
+        data_processing_frame = ChildApp.DataProcessFrame(None, '', file_path)
+        data_processing_frame.Show()
+
+        if not self.html_directory:
+            os.makedirs(self.html_directory)
+        def make_report():
+            data_report(file_path, self.html_directory)
+        thread = Thread(target=make_report)
+        thread.start()
 
     def AppConfig(self):
         # Tắt điều chỉnh cửa sổ

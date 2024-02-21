@@ -1,16 +1,15 @@
 import os
-import shutil
 import sklearn.impute
 import wx
 import webbrowser
 import pandas as pd
-
+import child_app.ModelingFrame
 
 class DataProcessFrame(wx.Frame):
-    def __init__(self, parent, title):
+    def __init__(self, parent, title, data_path):
         super(DataProcessFrame, self).__init__(parent, title=title, size=(818, 400))
 
-        self.data = pd.read_csv('E:\CODE-Codespace\Pycharm\Data-Processing-App-main\saved_file\Spotify-2000.csv')
+        self.data = pd.read_csv(data_path)
         self.html_path = 'E:\CODE-Codespace\Pycharm\Data-Processing-App-main\html_file'
         self.create_menu()
         self.create_widgets()
@@ -135,7 +134,7 @@ class DataProcessFrame(wx.Frame):
 
         choices = ["int32", "int64", 'float32', "float64", "object", "datetime64", "category", "timedelta64"]
 
-        dialog = ChoiceDialog(self, choices)
+        dialog = ChoiceDialog(self, choices, 'Lua Chon')
 
         if dialog.ShowModal() == wx.ID_OK:
             selected_choice = dialog.get_selection()
@@ -178,7 +177,17 @@ class DataProcessFrame(wx.Frame):
         self.update_display()
 
     def modeling_button(self, event):
-        pass
+        self.Close()
+        modelingframe = child_app.ModelingFrame.ModellingFrame(None, '', self.data)
+        modelingframe.Show()
+
+    def on_close(self, event):
+        if self.html_path:
+            files = os.listdir(self.html_path)
+            for i in files:
+                path = os.path.join(self.html_path, i)
+                os.remove(path)
+        self.Close()
 
     def AppConfig(self):
         # Tắt điều chỉnh cửa sổ
@@ -189,9 +198,12 @@ class DataProcessFrame(wx.Frame):
         for i in range(8):
             self.listbox.SetColumnWidth(i, 100)
 
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.on_close)
+        self.Bind(wx.EVT_CLOSE, self.on_close)
+
 class ChoiceDialog(wx.Dialog):
-    def __init__(self, parent, choices):
-        super().__init__(parent, title="Lựa chọn", size=(200, 150))
+    def __init__(self, parent, choices, title):
+        super().__init__(parent, title=title, size=(200, 150))
 
         self.choices = choices
 
@@ -212,7 +224,3 @@ class ChoiceDialog(wx.Dialog):
     def get_selection(self):
         return self.choices[self.choice.GetSelection()]
 
-myapp = wx.App()
-frame = DataProcessFrame(None, 'Data Processing')
-frame.Show()
-myapp.MainLoop()
