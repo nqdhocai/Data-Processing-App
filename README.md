@@ -4,9 +4,11 @@ This is a very simple and basic app so file input must be basic tabular data, bu
 
 Some library and module of Python were using is:
 * wxPython
-* OS
+* os
+* shutil
+* webbrowser
 * pandas
-* sklearn
+* scikit-learn
 * ydata-profiling
 * lazypredict
 * threading
