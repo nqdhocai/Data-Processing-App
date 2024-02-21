@@ -10,3 +10,10 @@ Some library and module of Python were using is:
 * ydata-profiling
 * lazypredict
   
+______________________________
+
+Run MainApp.py to start this app. 
+
+If you find it interesting, please give me 1 star :3.
+
+Thank you for viewing my repo. Wish you a good day :3
