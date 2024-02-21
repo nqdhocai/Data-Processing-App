@@ -120,7 +120,7 @@ class MainFrame(wx.Frame):
         data_processing_frame = ChildApp.DataProcessFrame(None, '', file_path)
         data_processing_frame.Show()
 
-        if not self.html_directory:
+        if not os.path.exists(self.html_directory):
             os.makedirs(self.html_directory)
         def make_report():
             data_report(file_path, self.html_directory)

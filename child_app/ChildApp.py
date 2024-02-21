@@ -177,17 +177,22 @@ class DataProcessFrame(wx.Frame):
         self.update_display()
 
     def modeling_button(self, event):
-        self.Close()
-        modelingframe = child_app.ModelingFrame.ModellingFrame(None, '', self.data)
-        modelingframe.Show()
-
-    def on_close(self, event):
-        if self.html_path:
+        if os.path.exists(self.html_path):
             files = os.listdir(self.html_path)
             for i in files:
                 path = os.path.join(self.html_path, i)
                 os.remove(path)
         self.Close()
+        modelingframe = child_app.ModelingFrame.ModellingFrame(None, '', self.data)
+        modelingframe.Show()
+
+    def on_close(self, event):
+        if os.path.exists(self.html_path):
+            files = os.listdir(self.html_path)
+            for i in files:
+                path = os.path.join(self.html_path, i)
+                os.remove(path)
+        self.Destroy()
 
     def AppConfig(self):
         # Tắt điều chỉnh cửa sổ
@@ -199,7 +204,6 @@ class DataProcessFrame(wx.Frame):
             self.listbox.SetColumnWidth(i, 100)
 
         self.Bind(wx.EVT_WINDOW_DESTROY, self.on_close)
-        self.Bind(wx.EVT_CLOSE, self.on_close)
 
 class ChoiceDialog(wx.Dialog):
     def __init__(self, parent, choices, title):
